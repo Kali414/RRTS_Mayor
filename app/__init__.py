@@ -1,6 +1,5 @@
 from flask import Flask,session
 from flask_cors import CORS
-from flask_session import Session 
 # from redis import Redis
 
 import os
