@@ -91,4 +91,4 @@ def signup():
 @auth.route('/logout')
 def clear_session():
     session.clear()
-    return redirect(url_for("mhome"))
+    return redirect("https://rrts-login.onrender.com")
