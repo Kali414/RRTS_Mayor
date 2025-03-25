@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mayor Portal - RRTS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='mdashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-road"></i>
+                <h1>Mayor Portal - RRTS</h1>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span>Hello mayor {{ session.get("name","Guest") }}</span>
+            </div>
+        </header>
+        
+        <nav>
+            <ul>
+                <li><a href="{{url_for('mdashboard')}}" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="{{url_for('repair_reports')}}"><i class="fas fa-file-alt"></i> Repair Reports</a></li>
+                <li><a href="{{url_for('statistics')}}"><i class="fas fa-chart-bar"></i> Statistics</a></li>
+                <li><a href="{{url_for('msettings')}}"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="{{url_for('auth.clear_session')}}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+        
+        <main>
+            <section id="dashboard" class="active-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                </div>
+                
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-tools"></i>
+                        <div class="stat-info">
+                            <h3>{{ total }}</h3>
+                            <p>Active Repairs</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="stat-info">
+                            <h3>{{ completed }}</h3>
+                            <p>Completed</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="stat-info">
+                            <h3>{{ priority }}</h3>
+                            <p>High Priority</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-info">
+                            <h3>{{ pending }}</h3>
+                            <p>Pending Approval</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <h3>Recent Repair Activities</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th>Supervisor Name</th>
+                                <th>Repair Status</th>
+                                <th>Priority</th>
+                                <th>Start Date</th>
+                                <th>Completion Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="repairList"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 Road Repair Tracking System - Mayor's Portal</p>
+        </footer>
+    </div>
+    
+    <script>
+        async function fetchRepairs() {
+    try {
+        const response = await fetch('/get_repairs');
+        const data = await response.json();
+        const tableBody = document.getElementById("repairList");
+
+        tableBody.innerHTML = "";  // Clear existing rows
+
+        data.forEach(repair => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${repair.location}</td>
+                <td>${repair.supervisor_name}</td>
+                <td><span class="status ${repair.repair_status.toLowerCase().replace(" ", "-")}">${repair.repair_status}</span></td>
+                <td><span class="priority ${repair.priority.toLowerCase()}">${repair.priority}</span></td>
+                <td>${new Date(repair.start_date).toLocaleDateString()}</td>
+                <td>${repair.completion_date ? new Date(repair.completion_date).toLocaleDateString() : "N/A"}</td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching repair data:", error);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", fetchRepairs);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repair Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='repair_report.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Repair Reports</h1>
+            <a href="{{ url_for('mdashboard') }}" class="back-button"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </header>
+        
+        <div class="filters">
+            <select id="priorityFilter">
+                <option value="all">All Priorities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+            <select id="statusFilter">
+                <option value="all">All Status</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Pending">Pending</option>
+            </select>
+            <button onclick="fetchReports()">Apply Filters</button>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Location</th>
+                        <th>Supervisor</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Start Date</th>
+                        <th>Completion Date</th>
+                        <th>Estimated Cost</th>
+                        <th>Repair Type</th>
+                        <th>Materials</th>
+                        <th>Comments</th>
+                        <th>Images</th>
+                    </tr>
+                </thead>
+                <tbody id="reportsList"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        async function fetchReports() {
+    const priority = document.getElementById("priorityFilter").value;
+    const status = document.getElementById("statusFilter").value;
+    
+    try {
+        const response = await fetch("/get_repairs");
+        const data = await response.json();
+        const tableBody = document.getElementById("reportsList");
+        tableBody.innerHTML = "";
+
+        // Apply filters before rendering
+        const filteredData = data.filter(report => {
+            return (priority === "all" || report.priority === priority) &&
+                   (status === "all" || report.repair_status === status);
+        });
+
+        filteredData.forEach(report => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${report._id}</td>
+                <td>${report.location}</td>
+                <td>${report.supervisor_name}</td>
+                <td>${report.repair_status}</td>
+                <td>${report.priority}</td>
+                <td>${new Date(report.start_date).toLocaleDateString()}</td>
+                <td>${report.completion_date ? new Date(report.completion_date).toLocaleDateString() : "N/A"}</td>
+                <td>${report.estimated_cost}</td>
+                <td>${report.repair_type}</td>
+                <td>${report.materials_used.join(", ")}</td>
+                <td>${report.comments}</td>
+                <td>
+                    ${report.images.map(img => `<a href="${img}" target="_blank">View</a>`).join(" | ")}
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error("Error fetching repair reports:", error);
+    }
+}
+
+// Fetch reports on page load
+document.addEventListener("DOMContentLoaded", fetchReports);
+
+    </script>
+</body>
+</html>

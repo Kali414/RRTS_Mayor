@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Mayor Portal RRTS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='mhome.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-content">
+            <div class="logo">
+                <i class="fas fa-road"></i>
+            </div>
+            <h1>Welcome to the Mayor Portal</h1>
+            <h2>Road Repair Tracking System</h2>
+            <p>Your comprehensive dashboard for monitoring and managing road repair activities across the city.</p>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Real-time Analytics</h3>
+                    <p>Monitor repair progress with live updates and statistics</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-tasks"></i>
+                    <h3>Project Management</h3>
+                    <p>Track and prioritize road repair projects efficiently</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>Detailed Reports</h3>
+                    <p>Generate comprehensive reports for better decision making</p>
+                </div>
+            </div>
+            
+            <a href="{{ url_for('mdashboard') }}" class="get-started-btn">
+                Get Started <i class="fas fa-arrow-right"></i>
+            </a>
+            
+            <div class="city-stats">
+                
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Road Repair Tracking System - Mayor's Portal</p>
+    </footer>
+</body>
+</html>
