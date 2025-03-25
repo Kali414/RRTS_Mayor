@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 
-from db import mayor,issues
+from database import mayor,issues,db
 
 from app.auth import auth
 
@@ -9,7 +9,6 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        role="Mayor"
             
         user = mayor.find_one({"email": email, "password": password})
         
@@ -79,7 +78,7 @@ def signup():
             session["city"]=city
             session["state"]=state
             session['_id']=new_id
-            
+
             return redirect(url_for("mhome"))
 
             

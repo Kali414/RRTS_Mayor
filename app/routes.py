@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session,jsonify
 import pymongo
 
-from db import mayor,complaint,issues
+from database import mayor,complaint,issues,db
 from app import app
 
 # @app.route("/")
