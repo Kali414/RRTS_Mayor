@@ -6,11 +6,11 @@ import os
 
 app=Flask(__name__)
 
-CORS(app, supports_credentials=True)
+CORS(app)
 
 
 # Required for Flask session to work
-app.config["SECRET_KEY"] = "your_secret_key"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 # app.config["SESSION_TYPE"] = "filesystem"
 # app.config["SESSION_COOKIE_NAME"] = "session_id"

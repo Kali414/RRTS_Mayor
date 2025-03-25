@@ -13,10 +13,6 @@ def mhome():
     if not session.get("name"):
         return redirect(url_for("auth.login"))  # Redirect if user is not logged in
 
-    
-
-
-
     return render_template("mhome.html")
 
 

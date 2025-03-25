@@ -79,6 +79,7 @@ def signup():
             session["city"]=city
             session["state"]=state
             session['_id']=new_id
+            
             return redirect(url_for("mhome"))
 
             
