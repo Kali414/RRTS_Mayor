@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import  render_template, request, redirect, url_for, session
 
-from database import mayor,issues,db
+from database import mayor
 
 from app.auth import auth
 
@@ -41,9 +41,9 @@ def signup():
         city=request.form.get("city")
         state=request.form.get("state")
         password=request.form.get("password")
-        role="Mayor"
+        
 
-        if(first_name and last_name and email and number and city and state and password and role):
+        if(first_name and last_name and email and number and city and state and password):
 
             data={
                 "name": first_name+" "+last_name,
@@ -52,7 +52,7 @@ def signup():
                 "city":city,
                 "state":state,
                 "password":password,
-                "role":role
+                "role":"Mayor"
             }
 
             user = mayor.find_one({"email": email, "password": password})
@@ -72,7 +72,7 @@ def signup():
             data["_id"] = new_id
             mayor.insert_one(data)
             session["name"]=first_name+" "+last_name
-            session["role"]=role
+            session["role"]="Mayor"
             session["email"]=email
             session["number"]=number
             session["city"]=city
