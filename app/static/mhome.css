@@ -1,8 +1,8 @@
 /* Global Styles */
 :root {
-    --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --accent-color: #e74c3c;
+    --primary-color: #00203ff2;
+    --secondary-color: #e67e22;
+    --accent-color: #3498db;
     --light-color: #ecf0f1;
     --dark-color: #2c3e50;
     --success-color: #27ae60;
@@ -11,6 +11,7 @@
     --info-color: #3498db;
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     --border-radius: 8px;
+    --yellow-color: #ffd700;
 }
 
 * {
@@ -21,7 +22,7 @@
 }
 
 body {
-    background-color: #f5f7fa;
+    background: linear-gradient(#00203ff2, rgba(31, 58, 147, 0.9));
     color: #333;
     line-height: 1.6;
     height: 100vh;
@@ -33,6 +34,8 @@ body {
     display: flex;
     flex: 1;
     width: 100%;
+    max-width: 75% !important;
+    margin: 0 auto;
 }
 
 /* Welcome Content Styles */
@@ -42,7 +45,15 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease-in-out;
+}
+
+.welcome-content:hover {
+    transform: translateY(-5px);
 }
 
 .logo {
@@ -53,8 +64,8 @@ body {
 
 .logo i {
     font-size: 4rem;
-    color: var(--secondary-color);
-    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--yellow-color);
+    background-color: rgba(0, 32, 63, 0.1);
     padding: 1.5rem;
     border-radius: 50%;
 }
@@ -76,7 +87,7 @@ body {
 
 .welcome-content > p {
     text-align: center;
-    color: #666;
+    color: #333;
     margin-bottom: 2.5rem;
     font-size: 1.1rem;
 }
@@ -93,19 +104,24 @@ body {
     text-align: center;
     padding: 1.5rem;
     border-radius: var(--border-radius);
-    background-color: #f8f9fa;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
 }
 
 .feature-item:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow);
+    box-shadow: 0 6px 8px rgba(13, 110, 253, 0.3);
 }
 
 .feature-item i {
     font-size: 2rem;
     color: var(--secondary-color);
     margin-bottom: 1rem;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 50%;
+    display: inline-block;
 }
 
 .feature-item:nth-child(1) i {
@@ -128,7 +144,7 @@ body {
 
 .feature-item p {
     font-size: 0.9rem;
-    color: #666;
+    color: #333;
 }
 
 /* Get Started Button */
@@ -137,22 +153,22 @@ body {
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
-    background-color: var(--secondary-color);
-    color: white;
+    background-color: var(--yellow-color);
+    color: var(--primary-color);
     text-decoration: none;
     padding: 1rem 2rem;
-    border-radius: var(--border-radius);
+    border-radius: 25px;
     font-size: 1.1rem;
     font-weight: 600;
     margin: 0 auto 2.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease-in-out;
     width: fit-content;
+    box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
 }
 
 .get-started-btn:hover {
-    background-color: #2980b9;
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
 }
 
 .get-started-btn i {
@@ -186,13 +202,13 @@ body {
 
 .stat-item p {
     font-size: 0.9rem;
-    color: #777;
+    color: #333;
 }
 
 /* City Image Styles */
 .city-image {
     flex: 1;
-    background-image: url('../static/images/city.jpg');
+    background-image: url('https://images.unsplash.com/photo-1530085892894-8fff66c8e3b7?auto=format&fit=crop&q=80');
     background-size: cover;
     background-position: center;
     position: relative;
@@ -205,7 +221,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, rgba(44, 62, 80, 0.7), rgba(44, 62, 80, 0.4));
+    background: linear-gradient(to right, rgba(0, 32, 63, 0.8), rgba(0, 32, 63, 0.5));
 }
 
 /* Footer Styles */
@@ -214,12 +230,14 @@ footer {
     color: white;
     text-align: center;
     padding: 1rem;
+    box-shadow: 0 2px 4px rgba(45, 161, 176, 0.1);
 }
 
 /* Responsive Styles */
 @media (max-width: 992px) {
     .container {
         flex-direction: column;
+        max-width: 90% !important;
     }
     
     .welcome-content, .city-image {
@@ -248,6 +266,10 @@ footer {
 }
 
 @media (max-width: 576px) {
+    .container {
+        max-width: 95% !important;
+    }
+    
     .welcome-content {
         padding: 1.5rem;
     }
