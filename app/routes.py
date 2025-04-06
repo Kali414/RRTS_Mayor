@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session,jsonify
 import pymongo
-
-from database import mayor,issues
+from datetime import datetime
+from database import mayor,issues,supervisor
 from app import app
+
+from bson.son import SON
+
+
 
 # @app.route("/")
 # def home():
@@ -22,9 +26,9 @@ def mdashboard():
         return redirect(url_for("auth.login"))
         # These lines should be **outside** the if block to ensure they always execute
     total = issues.count_documents({"city": session["city"]})
-    completed = issues.count_documents({"city": session["city"], "status": "Completed"})
-    pending = issues.count_documents({"city": session["city"], "status": "Pending"})
-    priority = issues.count_documents({"city": session["city"], "severity_level": "High"})
+    completed = issues.count_documents({"city": session["city"], "repair_status": "Completed"})
+    pending = issues.count_documents({"city": session["city"], "repair_status": "Pending"})
+    priority = issues.count_documents({"city": session["city"], "priority": "High"})
     print("Total:", total, "Completed:", completed, "Pending:", pending, "Priority:", priority)
     
     return render_template("mdashboard.html", total=total, completed=completed, priority=priority, pending=pending)
@@ -41,7 +45,21 @@ def statistics():
     if not session.get("name"):
         return redirect(url_for("auth.login"))
 
-    return render_template("statistics.html")
+    total = issues.count_documents({"city": session["city"]})
+    completed = issues.count_documents({"city": session["city"], "repair_status": "Completed"})
+    inprogress = issues.count_documents({"city": session["city"], "repair_status": "In Progress"})  # Add this line to calculate in-progress repairs
+    pending = issues.count_documents({"city": session["city"], "repair_status": "Pending"})
+    priority = issues.count_documents({"city": session["city"], "priority": "High"})
+    pipeline = [
+    {"$group": {"_id": "$city", "total": {"$sum": "$estimated_cost"}}}
+    ]
+    budget = list(issues.aggregate(pipeline))[0]["total"]
+
+    superv = len(issues.distinct("supervisor_name", {"city": session["city"]}))
+    print("Total:", total, "Completed:", completed, "Pending:", pending, "Priority:", priority,"Budget:",budget,"Supervisor:",superv)
+    
+
+    return render_template("statistics.html", total=total, completed=completed, inprogress=inprogress, pending=pending, budget=budget,supervisor=superv)
 
 @app.route("/update_profile",methods=["POST"])
 def update_profile():
@@ -72,18 +90,9 @@ def update_profile():
 @app.route("/get_repairs")
 def get_repairs():
     city = session.get("city", "DefaultCity")  # Replace with actual session value
-    repairs = list(issues.find({"city": city})
+    repairs = list(issues.find({"city": city},{"resources":0,"_id":0})
                .sort([("id", pymongo.DESCENDING)])  # Ensures proper sorting
                .limit(10))
-    
-    return jsonify(repairs)
-
-
-@app.route("/get_statistics/<start_date>/<end_date>")
-def get_statistics(start_date,end_date):
-    city = session.get("city", "DefaultCity")  # Replace with actual session value
-    repairs = list(issues.find({"city": city},{"start_date":{'$gte': start_date, '$lte': end_date}})
-               .sort([("id", pymongo.DESCENDING)]))  # Ensures proper sorting
     
     return jsonify(repairs)
 
@@ -93,3 +102,104 @@ def repair_reports():
         return redirect(url_for("auth.login"))
 
     return render_template("repair_reports.html")
+
+
+
+@app.route("/getsupervisors")
+def get_supervisors():
+    if not session.get("name"):
+        return redirect(url_for("auth.login"))
+
+    try:
+        city = session["city"]
+
+        pipeline = [
+            {"$match": {
+                "city": city
+            }},
+            {"$group": {
+                "_id": "$supervisor_name",
+                "projects_assigned": {"$sum": 1},
+                "projects_completed": {"$sum": {"$cond": [{"$eq": ["$repair_status", "Completed"]}, 1, 0]}}
+            }},
+            {"$project": {
+                "_id": 0,
+                "name": "$_id",
+                "projects_assigned": 1,
+                "projects_completed": 1,
+                "performance_rating": {
+                    "$cond": [
+                        {"$eq": ["$projects_assigned", 0]},
+                        0,
+                        {
+                            "$round": [
+                                {"$multiply": [{"$divide": ["$projects_completed", "$projects_assigned"]}, 5]}, 1
+                            ]
+                        }
+                    ]
+                },
+                "area": {
+                    "$literal": city
+                }
+            }}
+        ]
+
+        results = list(issues.aggregate(pipeline))
+        return jsonify(results)
+
+    except Exception as e:
+        print("Error in get_supervisors:", e)
+        return jsonify({"error": "Failed to retrieve supervisor data"}), 500
+
+
+
+@app.route("/getlocations")
+def get_locations():
+    if not session.get("name"):
+        return redirect(url_for("auth.login"))
+
+    try:
+        start_date_str = request.args.get("start_date")
+        end_date_str = request.args.get("end_date")
+
+        # Parse ISO format from HTML date input
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+
+        city = session["city"]
+
+        pipeline = [
+            {"$match": {
+                "city": city,
+                "start_date": {"$gte": start_date, "$lte": end_date}
+            }},
+            {"$group": {
+                "_id": "$location",
+                "total_repairs": {"$sum": 1},
+                "completed": {"$sum": {"$cond": [{"$eq": ["$repair_status", "Completed"]}, 1, 0]}},
+                "in_progress": {"$sum": {"$cond": [{"$eq": ["$repair_status", "In Progress"]}, 1, 0]}},
+                "pending": {"$sum": {"$cond": [{"$eq": ["$repair_status", "Pending"]}, 1, 0]}},
+                "budget": {"$sum": "$estimated_cost"}
+            }},
+            {"$sort": SON([("budget", -1)])}
+        ]
+
+        results = list(issues.aggregate(pipeline))
+
+        # Format results
+        formatted_data = []
+        for item in results:
+            formatted_data.append({
+                "name": item["_id"],
+                "total_repairs": item["total_repairs"],
+                "completed": item["completed"],
+                "in_progress": item["in_progress"],
+                "pending": item["pending"],
+                "budget": item["budget"]
+            })
+
+        return jsonify(formatted_data)
+
+    except Exception as e:
+        print("Error in get_locations:", e)
+        return jsonify({"error": "Error retrieving data"}), 500

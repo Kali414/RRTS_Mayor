@@ -32,75 +32,76 @@
                 <div class="stat-icon"><i class="fas fa-road"></i></div>
                 <div class="stat-content">
                     <h3>Total Repairs</h3>
-                    <p id="totalRepairs">0</p>
+                    <p id="totalRepairs">{{total}}</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
                 <div class="stat-content">
                     <h3>Completed</h3>
-                    <p id="completedRepairs">0</p>
+                    <p id="completedRepairs">{{completed}}</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-spinner"></i></div>
                 <div class="stat-content">
                     <h3>In Progress</h3>
-                    <p id="inProgressRepairs">0</p>
+                    <p id="inProgressRepairs">{{inprogress}}</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-clock"></i></div>
                 <div class="stat-content">
                     <h3>Pending</h3>
-                    <p id="pendingRepairs">0</p>
+                    <p id="pendingRepairs">{{pending}}</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
                 <div class="stat-content">
                     <h3>Total Budget</h3>
-                    <p id="totalBudget">$0</p>
+                    <p id="totalBudget">{{budget}}</p>
                 </div>
             </div>
         </div>
 
-        <div class="charts-container">
-            <div class="chart-card">
-                <h3>Repair Status Distribution</h3>
-                <div class="chart-wrapper">
-                    <canvas id="statusChart"></canvas>
+        <!-- Supervisor Information -->
+        <div class="supervisor-section">
+            <h3>Supervisor Information</h3>
+            <div class="supervisor-count-card">
+                <div class="supervisor-icon"><i class="fas fa-user-tie"></i></div>
+                <div class="supervisor-content">
+                    <h3>Total Supervisors</h3>
+                    <p id="totalSupervisors">{{supervisor}}</p>
                 </div>
             </div>
-            <div class="chart-card">
-                <h3>Repairs by Priority</h3>
-                <div class="chart-wrapper">
-                    <canvas id="priorityChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3>Monthly Repair Trends</h3>
-                <div class="chart-wrapper">
-                    <canvas id="trendsChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3>Budget Allocation by Repair Type</h3>
-                <div class="chart-wrapper">
-                    <canvas id="budgetChart"></canvas>
+            
+            <div class="supervisor-list">
+                <h4>Supervisor Details</h4>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Area</th>
+                                <th>Projects Assigned</th>
+                                <th>Projects Completed</th>
+                                <th>Performance Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="supervisorStats">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
+        <!-- Add location statistics table -->
         <div class="location-stats">
-            <h2>Repairs by Location</h2>
-            <div class="location-map">
-                <div id="mapContainer">
-                    <!-- Map will be rendered here -->
-                </div>
-            </div>
-            <div class="location-table-container">
-                <table class="location-table">
+            <h3>Location Statistics</h3>
+            <div class="table-responsive">
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>Location</th>
@@ -108,192 +109,88 @@
                             <th>Completed</th>
                             <th>In Progress</th>
                             <th>Pending</th>
-                            <th>Budget Allocated</th>
+                            <th>Budget</th>
                         </tr>
                     </thead>
                     <tbody id="locationStats">
-                        <!-- Location stats will be populated here -->
+                        <!-- Will be populated by JavaScript -->
                     </tbody>
                 </table>
-            </div>
-        </div>
-
-        <div class="performance-metrics">
-            <h2>Performance Metrics</h2>
-            <div class="metrics-container">
-                <div class="metric-card">
-                    <h3>Average Completion Time</h3>
-                    <p id="avgCompletionTime">0 days</p>
-                </div>
-                <div class="metric-card">
-                    <h3>On-Time Completion Rate</h3>
-                    <p id="onTimeRate">0%</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Budget Utilization</h3>
-                    <p id="budgetUtilization">0%</p>
-                </div>
-                <div class="metric-card">
-                    <h3>High Priority Resolution</h3>
-                    <p id="highPriorityRate">0%</p>
-                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Initialize date filters with default values (last 30 days)
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const today = new Date();
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(today.getDate() - 30);
-            
+    
             document.getElementById('endDate').valueAsDate = today;
             document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
-            
-            fetchStatistics();
+    
+            fetchLocationDetails();
+            fetchSupervisorDetails();
         });
-
-        // Apply date filter button event
-        document.getElementById('applyDateFilter').addEventListener('click', fetchStatistics);
-
-        async function fetchStatistics() {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            
+    
+        document.getElementById('applyDateFilter').addEventListener('click', function() {
+            fetchLocationDetails();
+        });
+    
+        async function fetchLocationDetails() {
             try {
-                const response = await fetch(`/get_statistics?start_date=${startDate}&end_date=${endDate}`);
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                const response = await fetch(`/getlocations?start_date=${startDate}&end_date=${endDate}`);
                 const data = await response.json();
-                
-                updateOverviewStats(data);
-                createCharts(data);
-                populateLocationStats(data.location_stats);
-                updatePerformanceMetrics(data.performance_metrics);
-                
+                const tableBody = document.getElementById("locationStats");
+
+                tableBody.innerHTML = "";  // Clear existing rows
+
+                data.forEach(location => {
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${location.name}</td>
+                        <td>${location.total_repairs}</td>
+                        <td>${location.completed}</td>
+                        <td>${location.in_progress}</td>
+                        <td>${location.pending}</td>
+                        <td>₹${location.budget.toLocaleString()}</td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
             } catch (error) {
-                console.error("Error fetching statistics:", error);
+                console.error("Error fetching location data:", error);
             }
         }
 
-        function updateOverviewStats(data) {
-            document.getElementById('totalRepairs').textContent = data.total_repairs;
-            document.getElementById('completedRepairs').textContent = data.completed_repairs;
-            document.getElementById('inProgressRepairs').textContent = data.in_progress_repairs;
-            document.getElementById('pendingRepairs').textContent = data.pending_repairs;
-            document.getElementById('totalBudget').textContent = `$${data.total_budget.toLocaleString()}`;
-        }
+        async function fetchSupervisorDetails() {
+            try {
+                const response = await fetch('/getsupervisors');
+                const data = await response.json();
+                const tableBody = document.getElementById("supervisorStats");
 
-        function createCharts(data) {
-            // Status Distribution Chart
-            const statusCtx = document.getElementById('statusChart').getContext('2d');
-            new Chart(statusCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Completed', 'In Progress', 'Pending'],
-                    datasets: [{
-                        data: [data.completed_repairs, data.in_progress_repairs, data.pending_repairs],
-                        backgroundColor: ['#2ecc71', '#3498db', '#f39c12']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
+                tableBody.innerHTML = "";  // Clear existing rows
 
-            // Priority Chart
-            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-            new Chart(priorityCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['High', 'Medium', 'Low'],
-                    datasets: [{
-                        label: 'Number of Repairs',
-                        data: [data.priority_stats.high, data.priority_stats.medium, data.priority_stats.low],
-                        backgroundColor: ['#e74c3c', '#f39c12', '#3498db']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+                data.forEach(supervisor => {
+                    const row = document.createElement("tr");
 
-            // Monthly Trends Chart
-            const trendsCtx = document.getElementById('trendsChart').getContext('2d');
-            new Chart(trendsCtx, {
-                type: 'line',
-                data: {
-                    labels: data.monthly_trends.months,
-                    datasets: [{
-                        label: 'Repairs Started',
-                        data: data.monthly_trends.started,
-                        borderColor: '#3498db',
-                        tension: 0.1,
-                        fill: false
-                    }, {
-                        label: 'Repairs Completed',
-                        data: data.monthly_trends.completed,
-                        borderColor: '#2ecc71',
-                        tension: 0.1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
+                    row.innerHTML = `
+                        <td>${supervisor.name}</td>
+                        <td>${supervisor.area}</td>
+                        <td>${supervisor.projects_assigned}</td>
+                        <td>${supervisor.projects_completed}</td>
+                        <td>${supervisor.performance_rating}/5</td>
+                    `;
 
-            // Budget Allocation Chart
-            const budgetCtx = document.getElementById('budgetChart').getContext('2d');
-            new Chart(budgetCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(data.budget_by_type),
-                    datasets: [{
-                        data: Object.values(data.budget_by_type),
-                        backgroundColor: [
-                            '#3498db', '#2ecc71', '#e74c3c', '#f39c12', 
-                            '#9b59b6', '#1abc9c', '#d35400', '#34495e'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-
-        function populateLocationStats(locationStats) {
-            const tableBody = document.getElementById('locationStats');
-            tableBody.innerHTML = '';
-            
-            locationStats.forEach(location => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${location.name}</td>
-                    <td>${location.total_repairs}</td>
-                    <td>${location.completed}</td>
-                    <td>${location.in_progress}</td>
-                    <td>${location.pending}</td>
-                    <td>$${location.budget.toLocaleString()}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        function updatePerformanceMetrics(metrics) {
-            document.getElementById('avgCompletionTime').textContent = `${metrics.avg_completion_time} days`;
-            document.getElementById('onTimeRate').textContent = `${metrics.on_time_rate}%`;
-            document.getElementById('budgetUtilization').textContent = `${metrics.budget_utilization}%`;
-            document.getElementById('highPriorityRate').textContent = `${metrics.high_priority_resolution}%`;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching supervisor data:", error);
+            }
         }
     </script>
 </body>

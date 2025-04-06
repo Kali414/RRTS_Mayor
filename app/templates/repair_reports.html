@@ -34,7 +34,6 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Location</th>
                         <th>Supervisor</th>
                         <th>Status</th>
@@ -73,7 +72,6 @@
         filteredData.forEach(report => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${report._id}</td>
                 <td>${report.location}</td>
                 <td>${report.supervisor_name}</td>
                 <td>${report.repair_status}</td>
