@@ -4,13 +4,26 @@ from datetime import datetime
 from database import mayor,issues,supervisor
 from app import app
 
+from bson import DBRef
 from bson.son import SON
-
-
 
 # @app.route("/")
 # def home():
 #     return render_template("home.html")
+
+# Helper to convert non-serializable types
+def clean_document(doc):
+    cleaned = {}
+    for key, value in doc.items():
+        if isinstance(value, DBRef):
+            cleaned[key] = str(value)  # Or value.id if you want just the reference ID
+        elif isinstance(value, list):
+            cleaned[key] = [str(v) if isinstance(v, DBRef) else v for v in value]
+        elif isinstance(value, dict):
+            cleaned[key] = clean_document(value)
+        else:
+            cleaned[key] = value
+    return cleaned
 
 @app.route('/mhome')
 def mhome():
@@ -26,9 +39,9 @@ def mdashboard():
         return redirect(url_for("auth.login"))
         # These lines should be **outside** the if block to ensure they always execute
     total = issues.count_documents({"city": session["city"]})
-    completed = issues.count_documents({"city": session["city"], "repair_status": "Completed"})
-    pending = issues.count_documents({"city": session["city"], "repair_status": "Pending"})
-    priority = issues.count_documents({"city": session["city"], "priority": "High"})
+    completed = issues.count_documents({"city": session["city"], "status": "Completed"})
+    pending = issues.count_documents({"city": session["city"], "status": "Pending"})
+    priority = issues.count_documents({"city": session["city"], "severity": "High"})
     print("Total:", total, "Completed:", completed, "Pending:", pending, "Priority:", priority)
     
     return render_template("mdashboard.html", total=total, completed=completed, priority=priority, pending=pending)
@@ -46,10 +59,10 @@ def statistics():
         return redirect(url_for("auth.login"))
 
     total = issues.count_documents({"city": session["city"]})
-    completed = issues.count_documents({"city": session["city"], "repair_status": "Completed"})
-    inprogress = issues.count_documents({"city": session["city"], "repair_status": "In Progress"})  # Add this line to calculate in-progress repairs
-    pending = issues.count_documents({"city": session["city"], "repair_status": "Pending"})
-    priority = issues.count_documents({"city": session["city"], "priority": "High"})
+    completed = issues.count_documents({"city": session["city"], "status": "Completed"})
+    inprogress = issues.count_documents({"city": session["city"], "status": "In Progress"})  # Add this line to calculate in-progress repairs
+    pending = issues.count_documents({"city": session["city"], "status": "Pending"})
+    priority = issues.count_documents({"city": session["city"], "severity": "High"})
     pipeline = [
     {"$group": {"_id": "$city", "total": {"$sum": "$estimated_cost"}}}
     ]
@@ -90,11 +103,18 @@ def update_profile():
 @app.route("/get_repairs")
 def get_repairs():
     city = session.get("city", "DefaultCity")  # Replace with actual session value
-    repairs = list(issues.find({"city": city},{"resources":0,"_id":0})
-               .sort([("id", pymongo.DESCENDING)])  # Ensures proper sorting
-               .limit(10))
-    
-    return jsonify(repairs)
+
+    # Fetch data, exclude _id and resources
+    raw_repairs = list(
+        issues.find({"city": city}, {"_id": 0, "resources": 0})
+              .sort([("id", pymongo.DESCENDING)])
+              .limit(10)
+    )
+
+    # Clean each document for JSON serialization
+    cleaned_repairs = [clean_document(doc) for doc in raw_repairs]
+
+    return jsonify(cleaned_repairs)
 
 @app.route("/repair_reports")
 def repair_reports():
@@ -120,7 +140,7 @@ def get_supervisors():
             {"$group": {
                 "_id": "$supervisor_name",
                 "projects_assigned": {"$sum": 1},
-                "projects_completed": {"$sum": {"$cond": [{"$eq": ["$repair_status", "Completed"]}, 1, 0]}}
+                "projects_completed": {"$sum": {"$cond": [{"$eq": ["$status", "Completed"]}, 1, 0]}}
             }},
             {"$project": {
                 "_id": 0,
@@ -171,14 +191,14 @@ def get_locations():
         pipeline = [
             {"$match": {
                 "city": city,
-                "start_date": {"$gte": start_date, "$lte": end_date}
+                "issueDate": {"$gte": start_date, "$lte": end_date}
             }},
             {"$group": {
                 "_id": "$location",
                 "total_repairs": {"$sum": 1},
-                "completed": {"$sum": {"$cond": [{"$eq": ["$repair_status", "Completed"]}, 1, 0]}},
-                "in_progress": {"$sum": {"$cond": [{"$eq": ["$repair_status", "In Progress"]}, 1, 0]}},
-                "pending": {"$sum": {"$cond": [{"$eq": ["$repair_status", "Pending"]}, 1, 0]}},
+                "completed": {"$sum": {"$cond": [{"$eq": ["$status", "Completed"]}, 1, 0]}},
+                "in_progress": {"$sum": {"$cond": [{"$eq": ["$status", "In Progress"]}, 1, 0]}},
+                "pending": {"$sum": {"$cond": [{"$eq": ["$status", "Pending"]}, 1, 0]}},
                 "budget": {"$sum": "$estimated_cost"}
             }},
             {"$sort": SON([("budget", -1)])}

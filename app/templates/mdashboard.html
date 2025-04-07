@@ -106,10 +106,10 @@
             row.innerHTML = `
                 <td>${repair.location}</td>
                 <td>${repair.supervisor_name}</td>
-                <td><span class="status ${repair.repair_status.toLowerCase().replace(" ", "-")}">${repair.repair_status}</span></td>
-                <td><span class="priority ${repair.priority.toLowerCase()}">${repair.priority}</span></td>
-                <td>${new Date(repair.start_date).toLocaleDateString()}</td>
-                <td>${repair.completion_date ? new Date(repair.completion_date).toLocaleDateString() : "N/A"}</td>
+                <td><span class="status ${repair.status.toLowerCase().replace(" ", "-")}">${repair.status}</span></td>
+                <td><span class="priority ${repair.severity.toLowerCase()}">${repair.severity}</span></td>
+                <td>${new Date(repair.issueDate).toLocaleDateString()}</td>
+                <td>${repair.completionDate ? new Date(repair.completionDate).toLocaleDateString() : "N/A"}</td>
             `;
 
             tableBody.appendChild(row);
