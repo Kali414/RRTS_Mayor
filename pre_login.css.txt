@@ -1,0 +1,53 @@
+body {
+    background: linear-gradient(135deg, #00203f 0%, #1f3a93 70%, #3498db 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.container { max-width: 1000px; }
+.logo {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.role-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: none;
+}
+.role-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+.role-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #00203f 0%, #1f3a93 70%, #3498db 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.card-body { padding: 2rem; text-align: center; }
+.btn-role {
+    background: linear-gradient(135deg, #00203f 0%, #1f3a93 70%, #3498db 100%);
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    font-weight: 600;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+.btn-role:hover {
+    transform: translateY(-3px);
+}
+.footer {
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin-top: 3rem;
+}

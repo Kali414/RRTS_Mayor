@@ -67,7 +67,7 @@ def statistics():
     {"$group": {"_id": "$city", "total": {"$sum": "$estimated_cost"}}}
     ]
     budget = list(issues.aggregate(pipeline))[0]["total"]
-
+    print(budget)
     superv = len(issues.distinct("supervisor_name", {"city": session["city"]}))
     print("Total:", total, "Completed:", completed, "Pending:", pending, "Priority:", priority,"Budget:",budget,"Supervisor:",superv)
     
